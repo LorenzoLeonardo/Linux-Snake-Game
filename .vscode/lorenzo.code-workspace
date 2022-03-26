@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.tcc": "cpp",
+			"memory_resource": "cpp",
+			"type_traits": "cpp"
+		}
+	},
+	"launch": {
+		"version": "0.2.0",
+		"externalConsole": true,
+		"filterStdout": true,
+		"configurations": [
+		
+			
+
+		]
+	}
+}
