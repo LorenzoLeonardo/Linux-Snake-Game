@@ -24,8 +24,8 @@ void CFood::createFood()
 	else
 		m_bIsBonus = false;
 
-	m_pos.X = (rand() % (m_screenSize.X - 2)) + 1;
-	m_pos.Y = (rand() % (m_screenSize.Y - 2)) + 1;
+	m_pos.X = (rand() % (m_screenSize.X - 2)) + 2;
+	m_pos.Y = (rand() % (m_screenSize.Y - 2)) + 2;
 }
 bool CFood::isBonusFood()
 {

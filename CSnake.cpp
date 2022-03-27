@@ -66,7 +66,7 @@ void CSnake::crawl()
 				m_vBody[0].X++;
 				if (m_vBody[0].X >= m_screenSize.X)
 				{
-					m_vBody[0].X = 0;
+					m_vBody[0].X = 2;
 				}
 			break;
 		case Snake_Direction::LEFT:
@@ -75,7 +75,7 @@ void CSnake::crawl()
 					m_vBody[i] = m_vBody[i - 1];
 				}
 				m_vBody[0].X--;
-				if (m_vBody[0].X < 0)
+				if (m_vBody[0].X < 2)
 				{
 					m_vBody[0].X = m_screenSize.X - 1;
 				}
@@ -86,7 +86,7 @@ void CSnake::crawl()
 					m_vBody[i] = m_vBody[i - 1];
 				}
 				m_vBody[0].Y--;
-				if (m_vBody[0].Y < 0)
+				if (m_vBody[0].Y < 2)
 				{
 					m_vBody[0].Y = m_screenSize.Y - 1;
 				}
@@ -99,7 +99,7 @@ void CSnake::crawl()
 				m_vBody[0].Y++;
 				if (m_vBody[0].Y >= (m_screenSize.Y))
 				{
-					m_vBody[0].Y = 0;
+					m_vBody[0].Y = 2;
 				}
 			break;
 	}

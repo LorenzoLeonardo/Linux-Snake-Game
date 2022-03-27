@@ -16,11 +16,12 @@ private:
     COORD m_cursorPosition;
     COORD m_screenSize;
     char m_foodChar;
-    char m_snakeChar;
+    int m_snakeChar;
     char m_deleteTrailingChar;
     Snake_Direction m_dir;
     int m_nGameSpeed;
     std::string m_nameLabel;
+    termios m_initialKBSettings;
 
     inline void gotoxy(int x, int y)
     {
@@ -32,9 +33,36 @@ private:
         gotoxy(snake.getTail().X, snake.getTail().Y);
         printf("%c", m_deleteTrailingChar);
 
-        gotoxy((m_screenSize.X/2) - ((int)m_nameLabel.length()/2), m_screenSize.Y - 1);
+        gotoxy((m_screenSize.X/2) - ((int)m_nameLabel.length()/2), m_screenSize.Y + 1);
         printf("%s", m_nameLabel.c_str());
 
+        gotoxy(1,1);
+        printf("╔");
+        gotoxy(m_screenSize.X,1);
+        printf("╗");
+        gotoxy(0,m_screenSize.Y);
+        printf("╚");
+        gotoxy(m_screenSize.X,m_screenSize.Y);
+        printf("╝");
+        
+        for(int y = 2 ; y < (m_screenSize.Y);y++)
+        {
+            gotoxy(1,y);
+            printf("║");
+
+            gotoxy(m_screenSize.X,y);
+            printf("║");
+         
+        }
+
+        for(int x = 2 ; x < m_screenSize.X; x++)
+        {
+            gotoxy(x,0);
+            printf("═");
+
+            gotoxy(x,m_screenSize.Y);
+            printf("═");
+        }
         snake.setDirection(m_dir);
         snake.crawl();
 
@@ -47,9 +75,9 @@ private:
     inline void drawFood(CFood &food)
     {
         if (food.isBonusFood())
-            m_foodChar = '8';
+            m_foodChar = 'B';
         else
-            m_foodChar = '0';
+            m_foodChar = 'O';
 
         gotoxy(food.getPosition().X, food.getPosition().Y);
         printf("%c",  m_foodChar);
@@ -113,7 +141,7 @@ private:
 public:
     CMain()
     {
-        m_foodChar = '0';
+        m_foodChar = 'O';
         m_snakeChar = '@';
         m_deleteTrailingChar = ' ';
         m_dir = Snake_Direction::RIGHT;
@@ -121,17 +149,29 @@ public:
         m_cursorPosition = { 0,0 };
         m_screenSize = { 0,0 };
         m_nameLabel = "Lorenzo Leonardo's Snake Game Linux Console Using C++ (c) 2022";
+       
+        system("clear");
+        printf("\e[?25l");
+        tcgetattr(0,&m_initialKBSettings);
+    }
+    ~CMain()
+    {
+        system("clear");
+        printf("\e[?25h");
+        tcsetattr(0, TCSANOW, &m_initialKBSettings);
+
     }
     void initializeArea()
     {
-        system("clear");
+        m_screenSize.X = 80;
+        m_screenSize.Y = 25;
+
+        printf("\e[8;%d;%dt",m_screenSize.Y + 1, m_screenSize.X);
+
 
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-        m_screenSize.X = 80;
-        m_screenSize.Y = 25;
-      
+           
         initscr();
         raw();
         keypad(stdscr, TRUE);
@@ -171,7 +211,7 @@ public:
             drawFood(food);
             sleep(m_nGameSpeed);
         }
-        system("clear");
+
     }
 };
 
