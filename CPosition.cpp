@@ -1,3 +1,8 @@
+/*
+* Developed By : Lorenzo T.Leonardo
+* Date : March 23, 2022
+* Email : enzotechcomputersolutions@gmail.com
+*/
 #include "CPosition.h"
 CPosition::CPosition()
 {
