@@ -1,3 +1,8 @@
+/*
+* Developed By : Lorenzo T.Leonardo
+* Date : March 23, 2022
+* Email : enzotechcomputersolutions@gmail.com
+*/
 #include <stdio.h>
 #include <iostream>
 #include <string>
@@ -6,8 +11,27 @@
 #include <ncurses.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <time.h>
 #include "CFood.h"
 #include "CSnake.h"
+
+namespace TIMER
+{
+    inline uint32_t getTickCount() 
+    {
+        struct timespec ts;
+        unsigned theTick = 0U;
+        clock_gettime( CLOCK_REALTIME, &ts );
+        theTick  = ts.tv_nsec / 1000000;
+        theTick += ts.tv_sec * 1000;
+        return theTick;
+    }
+
+    inline void sleep(int n)
+    {
+        usleep(n*1000);
+    }
+}
 
 class CMain
 {
@@ -26,7 +50,7 @@ private:
     inline void gotoxy(int x, int y)
     {
         printf("%c[%d;%df",0x1B,y,x);
-        fflush(stdout);
+
     }
     inline void drawSnake(CSnake &snake)
     {
@@ -40,7 +64,7 @@ private:
         printf("╔");
         gotoxy(m_screenSize.X,1);
         printf("╗");
-        gotoxy(0,m_screenSize.Y);
+        gotoxy(1,m_screenSize.Y);
         printf("╚");
         gotoxy(m_screenSize.X,m_screenSize.Y);
         printf("╝");
@@ -52,12 +76,11 @@ private:
 
             gotoxy(m_screenSize.X,y);
             printf("║");
-         
         }
 
-        for(int x = 2 ; x < m_screenSize.X; x++)
+        for(int x = 2 ; x < (m_screenSize.X); x++)
         {
-            gotoxy(x,0);
+            gotoxy(x,1);
             printf("═");
 
             gotoxy(x,m_screenSize.Y);
@@ -71,21 +94,20 @@ private:
             gotoxy(snake.getBodyLocation()[i].X, snake.getBodyLocation()[i].Y);
             printf("%c",  m_snakeChar);
         }
+        fflush(stdout);
     }
-    inline void drawFood(CFood &food)
+    inline void drawFood(CFood &food, bool isEaten)
     {
         if (food.isBonusFood())
             m_foodChar = 'B';
         else
             m_foodChar = 'O';
-
+        
         gotoxy(food.getPosition().X, food.getPosition().Y);
         printf("%c",  m_foodChar);
+        fflush(stdout);
     }
-    inline void sleep(int n)
-    {
-        usleep(n*1000);
-    }
+
     bool kbhit()
     {
         termios term;
@@ -106,11 +128,11 @@ private:
     inline bool listenForKeyPress()
     {
        int nKey = 0;
+      
        if(kbhit())
        {
             nKey = getch();
-            gotoxy(0,0);
-            printf(" ");
+           
             if (nKey == KEY_LEFT  && m_dir != Snake_Direction::RIGHT)
             {
                 m_dir = Snake_Direction::LEFT;
@@ -134,7 +156,7 @@ private:
        }
        return true;
     }
-    inline bool HasEaten(CSnake& snake, CFood& food)
+    inline bool hasEaten(CSnake& snake, CFood& food)
     {
         return ((snake.getHead().X == food.getPosition().X) && snake.getHead().Y == food.getPosition().Y);
     }
@@ -156,10 +178,10 @@ public:
     }
     ~CMain()
     {
-        system("clear");
+        
         printf("\e[?25h");
         tcsetattr(0, TCSANOW, &m_initialKBSettings);
-
+        system("clear");
     }
     void initializeArea()
     {
@@ -167,8 +189,7 @@ public:
         m_screenSize.Y = 25;
 
         printf("\e[8;%d;%dt",m_screenSize.Y + 1, m_screenSize.X);
-
-
+       
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
            
@@ -182,34 +203,45 @@ public:
     {
         CFood food(m_screenSize);
         CSnake snake(m_screenSize);
-       
+        uint32_t unTimePrev = 0, unTimeCurrent = 0;
         m_dir = Snake_Direction::RIGHT;
 
         food.createFood();
-        drawFood(food);
+        
+        unTimePrev = unTimeCurrent = TIMER::getTickCount();
 
         while (snake.isAlive() && listenForKeyPress())
         {
             drawSnake(snake);
+            if(food.isBonusFood())
+            {
+                //Bonus food will only appear for 5 seconds and disappear after.
+                unTimeCurrent = TIMER::getTickCount();
+                if((unTimeCurrent - unTimePrev) > 5000)
+                {
+                    gotoxy(food.getPosition().X, food.getPosition().Y);
+                    printf(" ");
+                    food.createFood();
+                    unTimePrev = unTimeCurrent;
+                }
+            }
+            else
+                unTimePrev = unTimeCurrent = TIMER::getTickCount();
 
-            if (HasEaten(snake,food))
+            if (hasEaten(snake,food))
             {
                 COORD posEaten;
                 posEaten = food.getPosition();
                
-
                 if (food.isBonusFood())
-                {
                     snake.growBonus(posEaten, 5);
-                }
                 else
-                {
                     snake.grow(posEaten);
-                }
+  
                 food.createFood();
             }
-            drawFood(food);
-            sleep(m_nGameSpeed);
+            drawFood(food, false);
+            TIMER::sleep(m_nGameSpeed);
         }
 
     }
